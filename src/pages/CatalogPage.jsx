@@ -1,3 +1,5 @@
+// src/pages/CatalogPage.jsx
+
 import { useEffect, useState } from "react";
 import { listCategories, listFurniture } from "../api/furniture";
 import { FurnitureCard } from "../components/FurnitureCard";
@@ -14,20 +16,10 @@ export default function CatalogPage() {
   useEffect(() => {
     listCategories()
       .then((data) => {
-        console.log('Categories data:', data);
-        console.log('Is array?', Array.isArray(data));
-        
-        // ✅ Agar object bo'lsa, array ga o'tkazish
-        let categoriesData = data.results ?? data;
-        if (!Array.isArray(categoriesData)) {
-          categoriesData = Object.values(categoriesData);
-        }
-        setCategories(categoriesData);
+        const catData = Array.isArray(data) ? data : (data.results || Object.values(data));
+        setCategories(catData);
       })
-      .catch((error) => {
-        console.error('Error fetching categories:', error);
-        setCategories([]);
-      });
+      .catch(() => setCategories([]));
   }, []);
 
   useEffect(() => {
@@ -40,21 +32,11 @@ export default function CatalogPage() {
     const timeout = setTimeout(() => {
       listFurniture(params)
         .then((data) => {
-          console.log('Furniture data:', data);
-          
-          // ✅ Agar object bo'lsa, array ga o'tkazish
-          let itemsData = data.results ?? data;
-          if (!Array.isArray(itemsData)) {
-            itemsData = Object.values(itemsData);
-          }
-          
+          const itemsData = Array.isArray(data) ? data : (data.results || Object.values(data));
           setItems(itemsData);
-          setCount(data.count ?? itemsData.length);
+          setCount(data.count || itemsData.length);
         })
-        .catch((error) => {
-          console.error('Error fetching furniture:', error);
-          setItems([]);
-        })
+        .catch(() => { setItems([]); setCount(0); })
         .finally(() => setLoading(false));
     }, 300);
 
@@ -77,11 +59,8 @@ export default function CatalogPage() {
         />
         <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
           <option value="">Barcha kategoriyalar</option>
-          {/* ✅ Array bo'lsa map ishlatish */}
           {Array.isArray(categories) && categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
+            <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
         <select value={ordering} onChange={(e) => setOrdering(e.target.value)}>
@@ -98,7 +77,6 @@ export default function CatalogPage() {
         <div className="empty-state">Hech narsa topilmadi</div>
       ) : (
         <div className="furniture-grid">
-          {/* ✅ Array bo'lsa map ishlatish */}
           {Array.isArray(items) && items.map((item) => (
             <FurnitureCard key={item.id} item={item} />
           ))}
