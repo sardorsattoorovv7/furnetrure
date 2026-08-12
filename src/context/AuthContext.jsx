@@ -29,13 +29,12 @@ export function AuthProvider({ children }) {
     bootstrap();
   }, []);
 
-  // ✅ username o'rniga email
-  async function login(email, password) {
-    console.log('🔐 AuthContext.login:', { email, password: '***' });
+  // ✅ username va password
+  async function login(username, password) {
+    console.log('🔐 AuthContext.login:', { username, password: '***' });
     
     try {
-      // ✅ email va password yuborish
-      await apiLogin(email, password);
+      await apiLogin(username, password);
       const me = await fetchMe();
       setUser(me);
       return me;

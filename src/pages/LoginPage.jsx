@@ -7,8 +7,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // ✅ username o'rniga email
-  const [email, setEmail] = useState("");
+  // ✅ username ishlatamiz
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,16 +20,15 @@ export default function LoginPage() {
     setError("");
     setBusy(true);
     
-    // ✅ Debug
-    console.log('📧 Login with:', { email, password: '***' });
+    console.log('📝 Login with:', { username, password: '***' });
     
     try {
-      // ✅ email yuborish
-      await login(email, password);
+      // ✅ username yuborish
+      await login(username, password);
       navigate(from, { replace: true });
     } catch (err) {
       console.error('❌ Login error:', err);
-      setError("Login yoki parol noto'g'ri");
+      setError("Username yoki parol noto'g'ri");
     } finally {
       setBusy(false);
     }
@@ -42,12 +41,12 @@ export default function LoginPage() {
         <p className="muted">Mebel zavodi AR tizimiga xush kelibsiz</p>
 
         <label>
-          Email
+          Username
           <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="Email manzilingiz"
+            type="text" 
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+            placeholder="Username"
             required 
             autoFocus 
           />

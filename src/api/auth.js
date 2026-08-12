@@ -1,39 +1,27 @@
 import client, { clearTokens, getRefreshToken, setTokens } from "./client";
 
-export async function login(email, password) {
-  console.log('📧 Login attempt:', { email, password: '***' });
-  console.log('🔍 API_BASE_URL:', client.defaults.baseURL);
+// ✅ username va password
+export async function login(username, password) {
+  console.log('📧 Login API call:', { username, password: '***' });
   
   try {
     const { data } = await client.post("/auth/login/", { 
-      email: email,
+      username: username,   // ✅ username
       password: password 
     });
     
-    console.log('✅ Login success:', data);
+    console.log('✅ Login API success:', data);
     setTokens({ access: data.access, refresh: data.refresh });
     return data;
   } catch (error) {
-    console.error('❌ Login error:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
+    console.error('❌ Login API error:', error.response?.data);
     throw error;
   }
 }
 
 export async function register(payload) {
-  console.log('📝 Register:', payload);
-  
-  try {
-    const { data } = await client.post("/auth/register/", payload);
-    console.log('✅ Register success:', data);
-    return data;
-  } catch (error) {
-    console.error('❌ Register error:', error.response?.data);
-    throw error;
-  }
+  const { data } = await client.post("/auth/register/", payload);
+  return data;
 }
 
 export async function fetchMe() {
