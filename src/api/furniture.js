@@ -1,62 +1,88 @@
-import client from "./client";
+import { useEffect, useState } from "react";
+import { listCategories, listFurniture } from "../api/furniture";
+import { FurnitureCard } from "../components/FurnitureCard";
 
-export async function listFurniture(params = {}) {
-  const { data } = await client.get("/furniture/", { params });
-  return data; // paginated: { count, next, previous, results }
-}
+export default function CatalogPage() {
+  const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [ordering, setOrdering] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [count, setCount] = useState(0);
 
-export async function getFurniture(idOrSlug) {
-  const { data } = await client.get(`/furniture/${idOrSlug}/`);
-  return data;
-}
+  // ✅ Kategoriyalarni yuklash
+  useEffect(() => {
+    listCategories()
+      .then((data) => {
+        // ✅ Array ga o'tkazish
+        const catData = Array.isArray(data) ? data : (data.results || Object.values(data));
+        setCategories(catData);
+      })
+      .catch(() => setCategories([]));
+  }, []);
 
-export async function createFurniture(payload) {
-  const { data } = await client.post("/furniture/", payload);
-  return data;
-}
+  // ✅ Mebelarni yuklash
+  useEffect(() => {
+    setLoading(true);
+    const params = {};
+    if (search) params.search = search;
+    if (categoryId) params.category = categoryId;
+    if (ordering) params.ordering = ordering;
 
-export async function updateFurniture(id, payload) {
-  const { data } = await client.patch(`/furniture/${id}/`, payload);
-  return data;
-}
+    const timeout = setTimeout(() => {
+      listFurniture(params)
+        .then((data) => {
+          const itemsData = Array.isArray(data) ? data : (data.results || Object.values(data));
+          setItems(itemsData);
+          setCount(data.count || itemsData.length);
+        })
+        .catch(() => { setItems([]); setCount(0); })
+        .finally(() => setLoading(false));
+    }, 300);
 
-export async function deleteFurniture(id) {
-  await client.delete(`/furniture/${id}/`);
-}
+    return () => clearTimeout(timeout);
+  }, [search, categoryId, ordering]);
 
-export async function uploadFurnitureModel(id, file, dims = {}) {
-  const form = new FormData();
-  form.append("glb_file", file);
-  if (dims.width_mm) form.append("model_width_mm", dims.width_mm);
-  if (dims.depth_mm) form.append("model_depth_mm", dims.depth_mm);
-  if (dims.height_mm) form.append("model_height_mm", dims.height_mm);
-  const { data } = await client.post(`/furniture/${id}/upload-model/`, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1>Mebel katalogi</h1>
+        <p className="muted">{count} ta mahsulot topildi</p>
+      </div>
 
-export async function uploadFurnitureImage(id, file, isMain = false) {
-  const form = new FormData();
-  form.append("image", file);
-  form.append("is_main", isMain ? "true" : "false");
-  const { data } = await client.post(`/furniture/${id}/upload-image/`, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
+      <div className="catalog-filters">
+        <input
+          className="search-input"
+          placeholder="Mebel qidirish..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <option value="">Barcha kategoriyalar</option>
+          {Array.isArray(categories) && categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <select value={ordering} onChange={(e) => setOrdering(e.target.value)}>
+          <option value="">Saralash</option>
+          <option value="-created_at">Yangi</option>
+          <option value="price">Narx: arzon</option>
+          <option value="-price">Narx: qimmat</option>
+        </select>
+      </div>
 
-export async function listCategories() {
-  const { data } = await client.get("/categories/");
-  return data;
-}
-
-export async function createCategory(payload) {
-  const { data } = await client.post("/categories/", payload);
-  return data;
-}
-
-export async function checkCompatibility(payload) {
-  const { data } = await client.post("/compatibility/check/", payload);
-  return data;
+      {loading ? (
+        <div className="page-loading">Yuklanmoqda...</div>
+      ) : items.length === 0 ? (
+        <div className="empty-state">Hech narsa topilmadi</div>
+      ) : (
+        <div className="furniture-grid">
+          {Array.isArray(items) && items.map((item) => (
+            <FurnitureCard key={item.id} item={item} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

@@ -12,7 +12,22 @@ export default function CatalogPage() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    listCategories().then((data) => setCategories(data.results ?? data));
+    listCategories()
+      .then((data) => {
+        console.log('Categories data:', data);
+        console.log('Is array?', Array.isArray(data));
+        
+        // ✅ Agar object bo'lsa, array ga o'tkazish
+        let categoriesData = data.results ?? data;
+        if (!Array.isArray(categoriesData)) {
+          categoriesData = Object.values(categoriesData);
+        }
+        setCategories(categoriesData);
+      })
+      .catch((error) => {
+        console.error('Error fetching categories:', error);
+        setCategories([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -25,11 +40,23 @@ export default function CatalogPage() {
     const timeout = setTimeout(() => {
       listFurniture(params)
         .then((data) => {
-          setItems(data.results ?? data);
-          setCount(data.count ?? (data.results ?? data).length);
+          console.log('Furniture data:', data);
+          
+          // ✅ Agar object bo'lsa, array ga o'tkazish
+          let itemsData = data.results ?? data;
+          if (!Array.isArray(itemsData)) {
+            itemsData = Object.values(itemsData);
+          }
+          
+          setItems(itemsData);
+          setCount(data.count ?? itemsData.length);
+        })
+        .catch((error) => {
+          console.error('Error fetching furniture:', error);
+          setItems([]);
         })
         .finally(() => setLoading(false));
-    }, 300); // debounce search
+    }, 300);
 
     return () => clearTimeout(timeout);
   }, [search, categoryId, ordering]);
@@ -50,7 +77,8 @@ export default function CatalogPage() {
         />
         <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
           <option value="">Barcha kategoriyalar</option>
-          {categories.map((c) => (
+          {/* ✅ Array bo'lsa map ishlatish */}
+          {Array.isArray(categories) && categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
@@ -70,7 +98,8 @@ export default function CatalogPage() {
         <div className="empty-state">Hech narsa topilmadi</div>
       ) : (
         <div className="furniture-grid">
-          {items.map((item) => (
+          {/* ✅ Array bo'lsa map ishlatish */}
+          {Array.isArray(items) && items.map((item) => (
             <FurnitureCard key={item.id} item={item} />
           ))}
         </div>
