@@ -6,7 +6,9 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [username, setUsername] = useState("");
+  
+  // ✅ username o'rniga email
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -17,10 +19,16 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setBusy(true);
+    
+    // ✅ Debug
+    console.log('📧 Login with:', { email, password: '***' });
+    
     try {
-      await login(username, password);
+      // ✅ email yuborish
+      await login(email, password);
       navigate(from, { replace: true });
-    } catch {
+    } catch (err) {
+      console.error('❌ Login error:', err);
       setError("Login yoki parol noto'g'ri");
     } finally {
       setBusy(false);
@@ -34,12 +42,26 @@ export default function LoginPage() {
         <p className="muted">Mebel zavodi AR tizimiga xush kelibsiz</p>
 
         <label>
-          Login
-          <input value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus />
+          Email
+          <input 
+            type="email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            placeholder="Email manzilingiz"
+            required 
+            autoFocus 
+          />
         </label>
+        
         <label>
           Parol
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input 
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            placeholder="Parolingiz"
+            required 
+          />
         </label>
 
         {error && <div className="form-error">{error}</div>}

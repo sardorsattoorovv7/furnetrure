@@ -29,11 +29,20 @@ export function AuthProvider({ children }) {
     bootstrap();
   }, []);
 
-  async function login(username, password) {
-    await apiLogin(username, password);
-    const me = await fetchMe();
-    setUser(me);
-    return me;
+  // ✅ username o'rniga email
+  async function login(email, password) {
+    console.log('🔐 AuthContext.login:', { email, password: '***' });
+    
+    try {
+      // ✅ email va password yuborish
+      await apiLogin(email, password);
+      const me = await fetchMe();
+      setUser(me);
+      return me;
+    } catch (error) {
+      console.error('❌ AuthContext.login error:', error);
+      throw error;
+    }
   }
 
   async function logout() {

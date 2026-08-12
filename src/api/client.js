@@ -3,6 +3,11 @@ import axios from "axios";
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
+// ✅ Debug - muhim!
+console.log('🔍 Environment:', import.meta.env.MODE);
+console.log('🔍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('🔍 API_BASE_URL:', API_BASE_URL);
+
 const client = axios.create({
   baseURL: API_BASE_URL,
 });
@@ -29,6 +34,15 @@ client.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // ✅ Debug
+  console.log('🚀 Request:', {
+    url: config.baseURL + config.url,
+    method: config.method,
+    data: config.data,
+    headers: config.headers,
+  });
+  
   return config;
 });
 
@@ -45,8 +59,23 @@ function processQueue(error, token = null) {
 }
 
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // ✅ Debug
+    console.log('✅ Response:', {
+      status: response.status,
+      data: response.data,
+    });
+    return response;
+  },
   async (error) => {
+    // ✅ Debug
+    console.error('❌ Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config,
+      message: error.message,
+    });
+    
     const originalRequest = error.config;
 
     if (
